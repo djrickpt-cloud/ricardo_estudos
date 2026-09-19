@@ -91,22 +91,53 @@
     #btnMenu { display: inline-flex; }
     .hide-mobile { display: none !important; }
   }
+  @media (max-width: 640px) {
+    .brand small { display: none; }
+    .brand { font-size: 15px; }
+    .fontctl .size { min-width: 30px; }
+  }
 
   /* ============ LAYOUT ============ */
   .layout { display: flex; height: calc(100vh - 62px); }
   aside.sidebar {
+    position: relative;
     width: 340px; flex-shrink: 0;
     border-right: 1px solid var(--border);
     overflow-y: auto;
     padding: 14px 12px 40px;
     background: var(--surface);
+    transition: width .25s ease, transform .2s ease;
   }
+  .sb-handle {
+    position: absolute; top: 14px; right: -13px; z-index: 6;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: none; place-items: center; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-soft); font-size: 13px; box-shadow: var(--shadow);
+  }
+  .sb-handle:hover { color: var(--accent); border-color: var(--accent); }
+  /* modo recolhido (desktop): vira uma faixa fina */
+  body.rail aside.sidebar { width: 54px; }
+  body.rail aside.sidebar .sb-inner { opacity: 0; pointer-events: none; }
+  .sb-inner { transition: opacity .15s ease; }
+  body.rail .sb-handle { display: grid; right: -13px; }
+
+  .backdrop {
+    position: fixed; inset: 62px 0 0 0; z-index: 35;
+    background: rgba(0,0,0,.45); opacity: 0; pointer-events: none;
+    transition: opacity .2s ease;
+  }
+  .backdrop.show { opacity: 1; pointer-events: auto; }
+
   @media (max-width: 920px) {
     aside.sidebar {
-      position: fixed; inset: 62px 0 0 0; width: 100%; z-index: 40;
-      transform: translateX(-105%); transition: transform .2s ease;
+      position: fixed; inset: 62px 0 0 0; width: min(320px, 86vw); z-index: 40;
+      transform: translateX(-105%);
+      box-shadow: var(--shadow);
     }
-    aside.sidebar.open { transform: none; box-shadow: var(--shadow); }
+    aside.sidebar.open { transform: none; }
+    body.rail aside.sidebar, body.rail aside.sidebar .sb-inner { width: min(320px, 86vw); opacity: 1; pointer-events: auto; }
+    .sb-handle { display: none !important; }
   }
 
   .search {
@@ -218,6 +249,7 @@
 
 <header class="topbar">
   <button class="btn icon-btn" id="btnMenu" title="Lista de estudos">☰</button>
+  <button class="btn icon-btn hide-mobile" id="btnCollapse" title="Recolher/expandir menu lateral">⮜</button>
   <div class="brand">
     <span class="logo">🕊️</span>
     <span>Ricardo Estudos<small>Segundo Cérebro</small></span>
@@ -239,6 +271,8 @@
 
 <div class="layout">
   <aside class="sidebar" id="sidebar">
+    <button class="sb-handle" id="sbHandle" title="Recolher/expandir menu">«</button>
+    <div class="sb-inner">
     <div class="search">
       <span>🔍</span>
       <input type="search" id="search" placeholder="Buscar por tema, tag, texto base...">
@@ -250,7 +284,10 @@
     </div>
     <div class="list-title">Conteúdo</div>
     <div id="list"></div>
+    </div>
   </aside>
+
+  <div class="backdrop" id="backdrop"></div>
 
   <main id="main">
     <div class="inner">
@@ -496,11 +533,40 @@
     toast("Rascunho descartado.");
   });
 
+  /* ---------- sidebar collapsible (desktop) ---------- */
+  var btnCollapse = document.getElementById("btnCollapse");
+  var sbHandle = document.getElementById("sbHandle");
+  var backdrop = document.getElementById("backdrop");
+  var body = document.body;
+
+  function setRail(on, persist){
+    body.classList.toggle("rail", on);
+    sbHandle.textContent = on ? "»" : "«";
+    btnCollapse.textContent = on ? "⮞" : "⮜";
+    if (persist !== false) {
+      try { on ? localStorage.setItem("re_rail", "1") : localStorage.removeItem("re_rail"); } catch(e){}
+    }
+  }
+  function isRail() { return body.classList.contains("rail"); }
+  var railStored = false;
+  try { railStored = localStorage.getItem("re_rail") === "1"; } catch(e){}
+  if (window.innerWidth >= 920 && railStored) setRail(true, false);
+
+  function toggleRail(){
+    setRail(!isRail());
+    if (isRail()) { sidebar.classList.remove("open"); backdrop.classList.remove("show"); }
+  }
+  btnCollapse.addEventListener("click", toggleRail);
+  sbHandle.addEventListener("click", toggleRail);
+
   /* ---------- mobile menu ---------- */
   document.getElementById("btnMenu").addEventListener("click", function(){
     sidebar.classList.toggle("open");
+    backdrop.classList.toggle("show", sidebar.classList.contains("open"));
   });
-  main.addEventListener("click", function(){ if(sidebar.classList.contains("open")) sidebar.classList.remove("open"); });
+  function closeDrawer(){ sidebar.classList.remove("open"); backdrop.classList.remove("show"); }
+  main.addEventListener("click", closeDrawer);
+  backdrop.addEventListener("click", closeDrawer);
 
   /* ---------- footer ---------- */
   document.getElementById("siteFoot").innerHTML =
