@@ -56,7 +56,8 @@
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
   }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; white-space: nowrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; white-space: nowrap; cursor: pointer; user-select: none; border-radius: 10px; padding: 4px 8px; margin-left: -8px; transition: background .15s; }
+  .brand:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
   .brand .logo {
     width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
     background: linear-gradient(135deg, var(--accent), #b8860b);
@@ -183,9 +184,35 @@
     max-width: 100%;
   }
   .inner { max-width: 780px; margin: 0 auto; }
+  .inner.home { max-width: 1160px; }
+
+  /* ============ HOME ============ */
+  .home-hero { padding: 10px 0 6px; }
+  .home-hero h1 { margin-bottom: 6px; }
+  .home-sub { color: var(--text-soft); font-size: 14.5px; margin: 0 0 4px; }
+  .home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 26px 0 8px; }
+  .card {
+    display: flex; flex-direction: column; gap: 8px;
+    text-align: left; cursor: pointer; text-decoration: none; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 18px 16px; box-shadow: var(--shadow);
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: 0 10px 30px rgba(0,0,0,.10); }
+  .card .card-cat { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  .card .card-title { font-family: var(--font-read); font-size: 19px; font-weight: 600; line-height: 1.3; }
+  .card .card-meta { font-size: 12.5px; color: var(--text-soft); display: flex; flex-wrap: wrap; gap: 10px; }
+  .card .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .card .card-tags span { font-size: 11px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-soft); padding: 2px 9px; border-radius: 999px; }
+  .home-count { font-size: 13px; color: var(--text-soft); margin-top: 10px; }
+
+  /* awake ligado */
+  #btnAwake.on { background: var(--accent); color: var(--accent-contrast); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
 
   .doc-head { margin-bottom: 6px; }
   .doc-cat { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .home-link { display: inline-block; font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; margin-bottom: 10px; }
+  .home-link:hover { text-decoration: underline; }
   h1 { font-family: var(--font-read); font-size: calc(32px * var(--font-scale)); line-height: 1.2; margin: 0 0 10px; font-weight: 600; }
   .doc-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
   .doc-meta .tag { font-size: 12px; font-weight: 600; color: var(--text-soft); background: var(--surface-2); border: 1px solid var(--border); padding: 3px 10px; border-radius: 999px; }
@@ -252,7 +279,7 @@
 <header class="topbar">
   <button class="btn icon-btn" id="btnMenu" title="Lista de estudos">☰</button>
   <button class="btn icon-btn hide-mobile" id="btnCollapse" title="Recolher/expandir menu lateral">⮜</button>
-  <div class="brand">
+  <div class="brand" id="btnHome" role="button" tabindex="0" title="Página inicial">
     <span class="logo">🕊️</span>
     <span>Ricardo Estudos<small>Segundo Cérebro</small></span>
   </div>
@@ -268,6 +295,7 @@
       <button class="btn icon-btn" id="fontPlus" title="Aumentar texto">A+</button>
     </div>
     <button class="btn icon-btn" id="btnTheme" title="Alternar tema">🌙</button>
+    <button class="btn icon-btn" id="btnAwake" title="Manter tela ligada (evita descanso/hibernação)">☕</button>
   </div>
 </header>
 
@@ -292,15 +320,21 @@
   <div class="backdrop" id="backdrop"></div>
 
   <main id="main">
-    <div class="inner">
-      <div id="placeholder" class="empty" style="padding-top:18vh">
-        <div style="font-size:44px;margin-bottom:12px">🕊️</div>
-        Selecione um estudo ou sermão na lista ao lado.
-      </div>
+    <div class="inner home" id="innerMain">
+      <section id="home">
+        <div class="home-hero">
+          <span class="doc-cat">Segundo Cérebro</span>
+          <h1>Início</h1>
+          <p class="home-sub">Últimos estudos e sermões publicados, do mais recente ao mais antigo.</p>
+        </div>
+        <div id="homeList" class="home-grid"></div>
+        <div class="home-count" id="homeCount"></div>
+      </section>
 
       <section id="doc" style="display:none">
         <div class="doc-head">
-          <span class="doc-cat" id="docCat">Estudo</span>
+          <a href="#" class="home-link" id="btnHomeLink">← Início</a>
+          <div class="doc-cat" id="docCat">Estudo</div>
           <h1 id="docTitle"></h1>
           <div class="doc-meta">
             <span class="tag" id="docType"></span>
@@ -322,8 +356,9 @@
             <button class="btn ghost" id="btnRestore">↩️ Restaurar original</button>
           </div>
         </div>
-        <footer class="site" id="siteFoot"></footer>
       </section>
+
+      <footer class="site" id="siteFoot"></footer>
     </div>
   </main>
 </div>
@@ -345,15 +380,20 @@
   var searchInput = document.getElementById("search");
   var doc = document.getElementById("doc");
   var docBody = document.getElementById("docBody");
-  var placeholder = document.getElementById("placeholder");
+  var home = document.getElementById("home");
+  var homeList = document.getElementById("homeList");
+  var homeCount = document.getElementById("homeCount");
+  var innerMain = document.getElementById("innerMain");
   var editorBox = document.getElementById("editor");
   var editorArea = document.getElementById("editorArea");
   var themeToggle = document.getElementById("btnTheme");
+  var awakeBtn = document.getElementById("btnAwake");
   var fontPlus = document.getElementById("fontPlus");
   var fontMinus = document.getElementById("fontMinus");
   var fontPct = document.getElementById("fontPct");
   var sidebar = document.getElementById("sidebar");
   var currentId = null;
+  var currentView = "home";
   var currentDraft = null;
   var filter = "todos";
   var query = "";
@@ -382,6 +422,52 @@
   themeToggle.addEventListener("click", function(){
     var cur = document.documentElement.getAttribute("data-theme");
     applyTheme(cur === "dark" ? "light" : "dark");
+  });
+
+  /* ---------- manter tela ligada (wake lock) ---------- */
+  var wakeLock = null;
+  var awakeOn = false;
+  try { awakeOn = localStorage.getItem("re_awake") === "1"; } catch(e){}
+
+  function refreshAwakeBtn(){
+    awakeBtn.classList.toggle("on", awakeOn);
+    awakeBtn.title = awakeOn
+      ? "Manter tela ligada: ATIVO (clique para desligar)"
+      : "Manter tela ligada (evita descanso/hibernação)";
+  }
+  function releaseWake(){
+    if (wakeLock) { try { wakeLock.release(); } catch(e){} wakeLock = null; }
+  }
+  function requestWake(){
+    releaseWake();
+    if (!navigator.wakeLock) return;
+    navigator.wakeLock.request("screen").then(function(l){
+      wakeLock = l;
+    }).catch(function(){
+      if (awakeOn) toast("Este navegador não permite manter a tela ligada.");
+    });
+  }
+  function applyAwake(force){
+    if (force !== undefined) awakeOn = !!force;
+    try { awakeOn ? localStorage.setItem("re_awake", "1") : localStorage.removeItem("re_awake"); } catch(e){}
+    refreshAwakeBtn();
+    if (awakeOn) requestWake(); else releaseWake();
+  }
+  awakeBtn.addEventListener("click", function(){ applyAwake(!awakeOn); });
+  document.addEventListener("visibilitychange", function(){
+    if (!awakeOn) return;
+    if (document.hidden) releaseWake(); else requestWake();
+  });
+  if (awakeOn) requestWake();
+  refreshAwakeBtn();
+
+  /* ---------- home ---------- */
+  document.getElementById("btnHome").addEventListener("click", showHome);
+  document.getElementById("btnHome").addEventListener("keydown", function(e){
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showHome(); }
+  });
+  document.getElementById("btnHomeLink").addEventListener("click", function(e){
+    e.preventDefault(); showHome();
   });
 
   /* ---------- fonte ---------- */
@@ -447,11 +533,50 @@
   searchInput.addEventListener("input", function(){ query = searchInput.value.trim(); buildList(); });
 
   /* ---------- navegação ---------- */
+  function showView(v){
+    currentView = v;
+    var isHome = v === "home";
+    home.style.display = isHome ? "" : "none";
+    doc.style.display = isHome ? "none" : "";
+    innerMain.classList.toggle("home", isHome);
+  }
+  function showHome(){
+    showView("home");
+    renderHome();
+    main.scrollTop = 0;
+    document.title = "Início - Ricardo Estudos";
+    try { localStorage.setItem("re_view", "home"); } catch(e){}
+    closeDrawer();
+  }
+
+  function renderHome(){
+    var recents = itens.slice().sort(function(a,b){
+      return String(b.created||"").localeCompare(String(a.created||""));
+    });
+    homeList.innerHTML = "";
+    recents.forEach(function(n){
+      var card = document.createElement("a");
+      card.href = "#"; card.className = "card";
+      card.setAttribute("data-id", n.id);
+      var tags = (n.tags||[]).slice(0,4).map(function(t){ return "<span>" + esc(t) + "</span>"; }).join("");
+      card.innerHTML =
+        '<span class="card-cat">' + (n.cat === "estudos" ? "Estudo" : "Sermão") + "</span>" +
+        '<span class="card-title">' + esc(n.title) + "</span>" +
+        '<span class="card-meta">' +
+        (n.created ? "<span>📅 " + esc(n.created) + "</span>" : "") +
+        (n.texto_base ? "<span>📖 " + esc(n.texto_base) + "</span>" : "") +
+        "</span>" +
+        (tags ? '<span class="card-tags">' + tags + "</span>" : "");
+      card.addEventListener("click", function(e){ e.preventDefault(); selectNota(n.id); });
+      homeList.appendChild(card);
+    });
+    homeCount.textContent = recents.length + " estudo(s)/sermão(ões) no acervo.";
+  }
+
   function selectNota(id){
     var n = fichas[id]; if(!n) return;
     currentId = id;
-    placeholder.style.display = "none";
-    doc.style.display = "block";
+    showView("doc");
     setMode("read");
     currentDraft = null;
     try { currentDraft = localStorage.getItem("re_draft_" + n.id); } catch(e){}
@@ -471,9 +596,37 @@
     docBody.innerHTML = marked.parse(renderMarkdown(md), { gfm:true });
     editorArea.value = md;
     buildList();
-    main.scrollTop = 0;
+    setPosRestore(main, "re_pos_" + n.id);
     document.title = n.title + " - Ricardo Estudos";
     try { localStorage.setItem("re_last", n.id); } catch(e){}
+    closeDrawer();
+  }
+
+  /* ---------- cache de posição de leitura ---------- */
+  function posKey(){ return currentId ? "re_pos_" + currentId : null; }
+  function savePos(){
+    var k = posKey(); if(!k || currentView !== "doc") return;
+    var el = main; var h = el.scrollHeight - el.clientHeight;
+    var f = h > 0 ? el.scrollTop / h : 0;
+    try { localStorage.setItem(k, String(f)); } catch(e){}
+  }
+  var _posT;
+  main.addEventListener("scroll", function(){
+    if (currentView !== "doc") return;
+    clearTimeout(_posT); _posT = setTimeout(savePos, 250);
+  });
+  function setPosRestore(el, key){
+    var f = null;
+    try { f = parseFloat(localStorage.getItem(key)); } catch(e){}
+    if (!(f >= 0)) f = 0;
+    var apply = function(){
+      var h = el.scrollHeight - el.clientHeight;
+      el.scrollTop = h > 0 ? h * f : 0;
+    };
+    apply();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ apply(); });
+    setTimeout(apply, 350);
+    setTimeout(apply, 900);
   }
 
   function setMode(m){
@@ -485,7 +638,7 @@
   }
   document.getElementById("modeSeg").addEventListener("click", function(e){
     var b = e.target.closest("[data-mode]"); if(!b) return;
-    if(!currentId){ toast("Selecione um estudo primeiro."); return; }
+    if(currentView !== "doc"){ toast("Abra um estudo para editar."); return; }
     setMode(b.getAttribute("data-mode"));
   });
 
@@ -574,10 +727,28 @@
   document.getElementById("siteFoot").innerHTML =
     "Fonte: " + esc(dados.fonte) + " &middot; " + (dados.gerado_em||"") + " &middot; " + itens.length + " notas.";
 
+  /* ---------- lembrar onde parou (ao fechar/sair) ---------- */
+  function rememberView(){
+    savePos();
+    try {
+      localStorage.setItem("re_view", (currentView === "doc" && currentId) ? ("doc:" + currentId) : "home");
+    } catch(e){}
+  }
+  window.addEventListener("pagehide", rememberView);
+  document.addEventListener("visibilitychange", function(){ if (document.hidden) rememberView(); });
+
   /* ---------- init ---------- */
   buildList();
-  var last = null; try { last = localStorage.getItem("re_last"); } catch(e){}
-  if (last && fichas[last]) { selectNota(last); } else if (itens.length) { selectNota(itens[0].id); }
+  renderHome();
+  var view = null;
+  try { view = localStorage.getItem("re_view"); } catch(e){}
+  if (view && view.indexOf("doc:") === 0) {
+    var resumedId = view.slice(4);
+    if (fichas[resumedId]) { selectNota(resumedId); }
+    else showHome();
+  } else {
+    showHome();
+  }
 })();
 </script>
 </body>
