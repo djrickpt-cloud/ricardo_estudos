@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ricardo Estudos - Segundo Cérebro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f1;
+    --surface: #ffffff;
+    --surface-2: #efece5;
+    --text: #201d18;
+    --text-soft: #6b6458;
+    --border: #e2ddd3;
+    --accent: #9a7b1c;
+    --accent-soft: #f3ecd6;
+    --accent-contrast: #fff;
+    --shadow: 0 1px 2px rgba(30,20,10,.05), 0 6px 24px rgba(30,20,10,.06);
+    --radius: 14px;
+    --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-read: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-scale: 1;
+  }
+  html[data-theme="dark"] {
+    --bg: #0e1013;
+    --surface: #161a20;
+    --surface-2: #1d222a;
+    --text: #e8e6e1;
+    --text-soft: #9a9488;
+    --border: #2a303a;
+    --accent: #d4af37;
+    --accent-soft: #2b2613;
+    --accent-contrast: #171204;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 28px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text);
+    transition: background .25s ease, color .25s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============ TOPBAR ============ */
+  header.topbar {
+    position: sticky; top: 0; z-index: 50;
+    height: 62px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 18px;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; white-space: nowrap; }
+  .brand .logo {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), #b8860b);
+    color: #fff; font-size: 18px;
+    box-shadow: 0 2px 6px rgba(180,140,30,.35);
+  }
+  .brand small { display: block; font-weight: 500; font-size: 11px; color: var(--text-soft); }
+  .spacer { flex: 1; }
+  .ctrl { display: flex; align-items: center; gap: 6px; }
+  .seg { display: flex; align-items: center; gap: 2px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
+  .seg button, .btn {
+    appearance: none; border: 0; cursor: pointer;
+    font: inherit; font-weight: 600; font-size: 13px;
+    color: var(--text); background: transparent;
+    border-radius: 7px; padding: 6px 10px;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s, color .15s, box-shadow .15s;
+  }
+  .seg button:hover, .btn:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+  .seg button.active {
+    background: var(--accent); color: var(--accent-contrast);
+    box-shadow: 0 1px 3px rgba(0,0,0,.15);
+  }
+  .btn.ghost { border: 1px solid var(--border); background: var(--surface); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn { width: 34px; padding: 6px; justify-content: center; }
+  .fontctl { display: flex; align-items: center; gap: 2px; }
+  .fontctl .size { font-size: 13px; min-width: 34px; text-align: center; font-variant-numeric: tabular-nums; color: var(--text-soft); }
+
+  #btnMenu { display: none; }
+  @media (max-width: 920px) {
+    #btnMenu { display: inline-flex; }
+    .hide-mobile { display: none !important; }
+  }
+
+  /* ============ LAYOUT ============ */
+  .layout { display: flex; height: calc(100vh - 62px); }
+  aside.sidebar {
+    width: 340px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 14px 12px 40px;
+    background: var(--surface);
+  }
+  @media (max-width: 920px) {
+    aside.sidebar {
+      position: fixed; inset: 62px 0 0 0; width: 100%; z-index: 40;
+      transform: translateX(-105%); transition: transform .2s ease;
+    }
+    aside.sidebar.open { transform: none; box-shadow: var(--shadow); }
+  }
+
+  .search {
+    width: 100%; display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface-2);
+  }
+  .search input {
+    flex: 1; border: 0; background: transparent; outline: 0; color: var(--text);
+    font: inherit; font-size: 13.5px;
+  }
+  .search input::placeholder { color: var(--text-soft); }
+
+  .filters { display: flex; gap: 6px; margin: 12px 0; flex-wrap: wrap; }
+  .chip {
+    border: 1px solid var(--border); background: transparent; color: var(--text-soft);
+    font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+    padding: 5px 11px; border-radius: 999px; transition: all .15s;
+  }
+  .chip:hover { color: var(--accent); border-color: var(--accent); }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+
+  .list-title { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--text-soft); margin: 16px 2px 8px; }
+  .item {
+    display: block; width: 100%; text-align: left;
+    border: 1px solid transparent; border-radius: 12px;
+    background: transparent; color: var(--text); cursor: pointer;
+    padding: 10px 12px; margin-bottom: 4px; transition: background .15s, border .15s;
+    font-family: inherit;
+  }
+  .item:hover { background: var(--surface-2); }
+  .item.active { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .item .t { font-weight: 600; font-size: 14px; line-height: 1.35; }
+  .item .m { margin-top: 5px; display: flex; gap: 8px; align-items: center; font-size: 11.5px; color: var(--text-soft); }
+  .item .m .k { background: var(--surface-2); border: 1px solid var(--border); padding: 1px 7px; border-radius: 999px; }
+  .empty { color: var(--text-soft); font-size: 13.5px; padding: 16px 4px; text-align: center; }
+
+  /* ============ MAIN ============ */
+  main {
+    flex: 1; overflow-y: auto; padding: 28px 6vw 80px;
+    max-width: 100%;
+  }
+  .inner { max-width: 780px; margin: 0 auto; }
+
+  .doc-head { margin-bottom: 6px; }
+  .doc-cat { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  h1 { font-family: var(--font-read); font-size: calc(32px * var(--font-scale)); line-height: 1.2; margin: 0 0 10px; font-weight: 600; }
+  .doc-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .doc-meta .tag { font-size: 12px; font-weight: 600; color: var(--text-soft); background: var(--surface-2); border: 1px solid var(--border); padding: 3px 10px; border-radius: 999px; }
+  .doc-meta .tb { font-size: 12.5px; color: var(--text-soft); }
+  .banner {
+    display: none; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin: 12px 0; padding: 10px 14px; border-radius: 12px;
+    background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    font-size: 13px;
+  }
+  .banner.show { display: flex; }
+
+  /* -------- artigo (modo leitura) -------- */
+  article.doc { font-family: var(--font-read); font-size: calc(18px * var(--font-scale)); line-height: 1.75; color: var(--text); }
+  article.doc h2 { font-size: calc(25px * var(--font-scale)); margin: 1.5em 0 .6em; line-height: 1.3; font-weight: 600; }
+  article.doc h3 { font-size: calc(21px * var(--font-scale)); margin: 1.4em 0 .55em; line-height: 1.35; font-weight: 600; }
+  article.doc p { margin: .9em 0; }
+  article.doc strong { font-weight: 600; }
+  article.doc blockquote {
+    margin: 1.1em 0; padding: .2em 1.2em; color: color-mix(in srgb, var(--text) 88%, var(--accent));
+    border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+    border-radius: 0 10px 10px 0;
+  }
+  article.doc blockquote p { margin: .55em 0; }
+  article.doc ul, article.doc ol { padding-left: 1.5em; }
+  article.doc li { margin: .35em 0; }
+  article.doc hr { border: 0; border-top: 1px dashed var(--border); margin: 2em 0; }
+  article.doc .wikilink { color: var(--accent); font-weight: 500; border-bottom: 1px dotted color-mix(in srgb, var(--accent) 55%, transparent); cursor: default; }
+  article.doc em { font-style: italic; }
+  article.doc a { color: var(--accent); }
+
+  /* -------- editor (modo edição) -------- */
+  .editor { display: none; flex-direction: column; gap: 12px; margin-top: 8px; }
+  .editor.show { display: flex; }
+  .editor textarea {
+    width: 100%; min-height: 62vh; resize: vertical;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px; line-height: 1.6;
+    color: var(--text); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+    outline: 0;
+  }
+  .editor textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+  .editor-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  footer.site { text-align: center; color: var(--text-soft); font-size: 12px; padding: 26px 0 10px; }
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translate(-50%, 20px);
+    background: var(--text); color: var(--bg); font-size: 13.5px; font-weight: 600;
+    padding: 10px 18px; border-radius: 12px; opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s; z-index: 99; box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media print {
+    header.topbar, aside.sidebar, .editor-actions, .banner, #btnBackTop { display: none !important; }
+    body { background: #fff; color: #000; }
+    main { overflow: visible; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="btn icon-btn" id="btnMenu" title="Lista de estudos">☰</button>
+  <div class="brand">
+    <span class="logo">🕊️</span>
+    <span>Ricardo Estudos<small>Segundo Cérebro</small></span>
+  </div>
+  <div class="spacer"></div>
+  <div class="ctrl">
+    <div class="seg" id="modeSeg" title="Modo de visualização">
+      <button data-mode="read" class="active" id="modeRead">Ler</button>
+      <button data-mode="edit" id="modeEdit">Editar</button>
+    </div>
+    <div class="fontctl">
+      <button class="btn icon-btn" id="fontMinus" title="Diminuir texto">A−</button>
+      <span class="size" id="fontPct">100%</span>
+      <button class="btn icon-btn" id="fontPlus" title="Aumentar texto">A+</button>
+    </div>
+    <button class="btn icon-btn" id="btnTheme" title="Alternar tema">🌙</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="search">
+      <span>🔍</span>
+      <input type="search" id="search" placeholder="Buscar por tema, tag, texto base...">
+    </div>
+    <div class="filters" id="filters">
+      <button class="chip active" data-cat="todos">Todos</button>
+      <button class="chip" data-cat="estudos">Estudos</button>
+      <button class="chip" data-cat="sermoes">Sermões</button>
+    </div>
+    <div class="list-title">Conteúdo</div>
+    <div id="list"></div>
+  </aside>
+
+  <main id="main">
+    <div class="inner">
+      <div id="placeholder" class="empty" style="padding-top:18vh">
+        <div style="font-size:44px;margin-bottom:12px">🕊️</div>
+        Selecione um estudo ou sermão na lista ao lado.
+      </div>
+
+      <section id="doc" style="display:none">
+        <div class="doc-head">
+          <span class="doc-cat" id="docCat">Estudo</span>
+          <h1 id="docTitle"></h1>
+          <div class="doc-meta">
+            <span class="tag" id="docType"></span>
+            <span class="tb" id="docTextoBase"></span>
+            <span class="tb" id="docDate"></span>
+          </div>
+        </div>
+        <div class="banner" id="draftBanner">
+          <span>📝 Há um rascunho local salvo para este estudo.</span>
+          <button class="btn ghost" id="useDraft">Usar rascunho</button>
+          <button class="btn ghost" id="discardDraft">Descartar</button>
+        </div>
+        <article class="doc" id="docBody"></article>
+        <div class="editor" id="editor">
+          <textarea id="editorArea" spellcheck="false" placeholder="Edite o markdown deste estudo..."></textarea>
+          <div class="editor-actions">
+            <button class="btn ghost" id="btnSave">💾 Salvar rascunho local</button>
+            <button class="btn ghost" id="btnDownload">⬇️ Baixar .md</button>
+            <button class="btn ghost" id="btnRestore">↩️ Restaurar original</button>
+          </div>
+        </div>
+        <footer class="site" id="siteFoot"></footer>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="lib/marked.min.js"></script>
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var dados = window.ESTUDOS || { itens: [], gerado_em: "" };
+  var itens = dados.itens;
+  var fichas = {};
+  itens.forEach(function (n) { fichas[n.id] = n; });
+
+  var lista = document.getElementById("list");
+  var searchInput = document.getElementById("search");
+  var doc = document.getElementById("doc");
+  var docBody = document.getElementById("docBody");
+  var placeholder = document.getElementById("placeholder");
+  var editorBox = document.getElementById("editor");
+  var editorArea = document.getElementById("editorArea");
+  var themeToggle = document.getElementById("btnTheme");
+  var fontPlus = document.getElementById("fontPlus");
+  var fontMinus = document.getElementById("fontMinus");
+  var fontPct = document.getElementById("fontPct");
+  var sidebar = document.getElementById("sidebar");
+  var currentId = null;
+  var currentDraft = null;
+  var filter = "todos";
+  var query = "";
+  var mode = "read";
+  var documents = [];
+
+  /* ---------- util ---------- */
+  function slugify(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+  function temposort(a,b){ var an=(a.id.match(/^\d+/)||["99"])[0], bn=(b.id.match(/^\d+/)||["99"])[0]; return +an-+bn || (a.cat<b.cat?-1:1); }
+
+  function toast(msg){
+    var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(t._h); t._h=setTimeout(function(){t.classList.remove("show");},2200);
+  }
+
+  /* ---------- tema ---------- */
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme);
+    themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+    try { localStorage.setItem("re_theme", theme); } catch(e){}
+  }
+  var storedTheme = null;
+  try { storedTheme = localStorage.getItem("re_theme"); } catch(e){}
+  applyTheme(storedTheme || "dark");
+
+  themeToggle.addEventListener("click", function(){
+    var cur = document.documentElement.getAttribute("data-theme");
+    applyTheme(cur === "dark" ? "light" : "dark");
+  });
+
+  /* ---------- fonte ---------- */
+  var FMIN = 75, FMAX = 150, STEP = 12.5;
+  var font = 100;
+  try { font = +localStorage.getItem("re_font") || 100; } catch(e){}
+  font = Math.min(FMAX, Math.max(FMIN, font));
+  applyFont();
+  function applyFont(){
+    document.documentElement.style.setProperty("--font-scale", (font/100).toFixed(3));
+    fontPct.textContent = Math.round(font) + "%";
+    try { localStorage.setItem("re_font", font); } catch(e){}
+  }
+  fontPlus.addEventListener("click", function(){ font = Math.min(FMAX, font+STEP); applyFont(); });
+  fontMinus.addEventListener("click", function(){ font = Math.max(FMIN, font-STEP); applyFont(); });
+
+  /* ---------- markdown ---------- */
+  function wikilinks(md){
+    return md.replace(/\[\[([^\]|]+?)(?:\|([^\]]*?))?\]\]/g, function(_, target, label){
+      var t = (target||"").trim();
+      var l = (label||"").trim() || t;
+      return '<span class="wikilink" title="Wikilink">' + l.replace(/</g,"&lt;") + "</span>";
+    });
+  }
+  function renderMarkdown(md){
+    return wikilinks(md);
+  }
+
+  /* ---------- lista ---------- */
+  function buildList(){
+    var k = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").toLowerCase();
+    var res = itens.filter(function(n){
+      if (filter !== "todos" && n.cat !== filter) return false;
+      if (!k) return true;
+      var hay = (n.title + " " + n.file + " " + n.texto_base + " " + (n.tags||[]).join(" ")).toLowerCase();
+      return hay.indexOf(k) !== -1;
+    }).slice().sort(temposort);
+
+    if (!res.length){ lista.innerHTML = '<div class="empty">Nenhum estudo encontrado.</div>'; return; }
+    lista.innerHTML = "";
+    res.forEach(function(n){
+      var el = document.createElement("button");
+      el.className = "item" + (n.id === currentId ? " active":"");
+      el.setAttribute("data-id", n.id);
+      el.innerHTML =
+        '<span class="t">' + esc(n.title) + "</span>" +
+        '<span class="m"><span class="k">' + (n.cat === "estudos" ? "Estudo" : "Sermão") + "</span>" +
+        (n.created ? "<span>" + esc(n.created) + "</span>" : "") +
+        (n.texto_base ? "<span>" + esc(n.texto_base) + "</span>" : "") + "</span>";
+      el.addEventListener("click", function(){ selectNota(n.id); });
+      lista.appendChild(el);
+    });
+  }
+  function esc(s){ var d=document.createElement("div"); d.textContent=s==null?"":String(s); return d.innerHTML; }
+
+  document.getElementById("filters").addEventListener("click", function(e){
+    var b = e.target.closest("[data-cat]"); if(!b) return;
+    document.querySelectorAll("#filters .chip").forEach(function(c){ c.classList.remove("active"); });
+    b.classList.add("active");
+    filter = b.getAttribute("data-cat");
+    buildList();
+  });
+  searchInput.addEventListener("input", function(){ query = searchInput.value.trim(); buildList(); });
+
+  /* ---------- navegação ---------- */
+  function selectNota(id){
+    var n = fichas[id]; if(!n) return;
+    currentId = id;
+    placeholder.style.display = "none";
+    doc.style.display = "block";
+    setMode("read");
+    currentDraft = null;
+    try { currentDraft = localStorage.getItem("re_draft_" + n.id); } catch(e){}
+    var banner = document.getElementById("draftBanner");
+    banner.classList.toggle("show", !!currentDraft);
+
+    document.getElementById("docCat").textContent = n.cat === "estudos" ? "Estudo" : "Sermão";
+    document.getElementById("docTitle").textContent = n.title;
+    document.getElementById("docType").textContent = n.tipo ? (n.tipo==="esboco-de-sermao"?"esboço de sermão":n.tipo) : "";
+    document.getElementById("docType").style.display = n.tipo ? "" : "none";
+    var tb = document.getElementById("docTextoBase");
+    tb.textContent = n.texto_base ? ("Texto base: " + n.texto_base) : "";
+    tb.style.display = n.texto_base ? "" : "none";
+    document.getElementById("docDate").textContent = n.created || "";
+
+    var md = currentDraft || n.content;
+    docBody.innerHTML = marked.parse(renderMarkdown(md), { gfm:true });
+    editorArea.value = md;
+    buildList();
+    main.scrollTop = 0;
+    document.title = n.title + " - Ricardo Estudos";
+    try { localStorage.setItem("re_last", n.id); } catch(e){}
+  }
+
+  function setMode(m){
+    mode = m;
+    document.getElementById("modeRead").classList.toggle("active", m==="read");
+    document.getElementById("modeEdit").classList.toggle("active", m==="edit");
+    docBody.style.display = m==="read" ? "" : "none";
+    editorBox.classList.toggle("show", m==="edit");
+  }
+  document.getElementById("modeSeg").addEventListener("click", function(e){
+    var b = e.target.closest("[data-mode]"); if(!b) return;
+    if(!currentId){ toast("Selecione um estudo primeiro."); return; }
+    setMode(b.getAttribute("data-mode"));
+  });
+
+  /* ---------- editor ---------- */
+  document.getElementById("btnSave").addEventListener("click", function(){
+    if(!currentId) return;
+    var v = editorArea.value;
+    try { localStorage.setItem("re_draft_" + currentId, v); } catch(e){ toast("Não foi possível salvar no navegador."); return; }
+    currentDraft = v;
+    docBody.innerHTML = marked.parse(renderMarkdown(v), { gfm:true });
+    document.getElementById("draftBanner").classList.add("show");
+    toast("Rascunho salvo localmente.");
+  });
+  document.getElementById("btnDownload").addEventListener("click", function(){
+    if(!currentId) return;
+    var n = fichas[currentId];
+    var blob = new Blob([editorArea.value], { type: "text/markdown;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = n.file.replace(/\//g, "__") || (n.id + ".md");
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 100);
+    toast("Arquivo baixado.");
+  });
+  document.getElementById("btnRestore").addEventListener("click", function(){
+    if(!currentId) return;
+    var n = fichas[currentId];
+    try { localStorage.removeItem("re_draft_" + currentId); } catch(e){}
+    currentDraft = null;
+    editorArea.value = n.content;
+    docBody.innerHTML = marked.parse(renderMarkdown(n.content), { gfm:true });
+    document.getElementById("draftBanner").classList.remove("show");
+    toast("Original restaurado.");
+  });
+  document.getElementById("useDraft").addEventListener("click", function(){
+    if(!currentId || !currentDraft) return;
+    docBody.innerHTML = marked.parse(renderMarkdown(currentDraft), { gfm:true });
+    document.getElementById("draftBanner").classList.remove("show");
+    setMode("read");
+    toast("Usando rascunho local.");
+  });
+  document.getElementById("discardDraft").addEventListener("click", function(){
+    if(!currentId) return;
+    try { localStorage.removeItem("re_draft_" + currentId); } catch(e){}
+    currentDraft = null;
+    document.getElementById("draftBanner").classList.remove("show");
+    toast("Rascunho descartado.");
+  });
+
+  /* ---------- mobile menu ---------- */
+  document.getElementById("btnMenu").addEventListener("click", function(){
+    sidebar.classList.toggle("open");
+  });
+  main.addEventListener("click", function(){ if(sidebar.classList.contains("open")) sidebar.classList.remove("open"); });
+
+  /* ---------- footer ---------- */
+  document.getElementById("siteFoot").innerHTML =
+    "Fonte: " + esc(dados.fonte) + " &middot; " + (dados.gerado_em||"") + " &middot; " + itens.length + " notas.";
+
+  /* ---------- init ---------- */
+  buildList();
+  var last = null; try { last = localStorage.getItem("re_last"); } catch(e){}
+  if (last && fichas[last]) { selectNota(last); } else if (itens.length) { selectNota(itens[0].id); }
+})();
+</script>
+</body>
+</html>
