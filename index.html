@@ -190,6 +190,7 @@
   .home-hero { padding: 10px 0 6px; }
   .home-hero h1 { margin-bottom: 6px; }
   .home-sub { color: var(--text-soft); font-size: 14.5px; margin: 0 0 4px; }
+  .home-filters { margin-top: 16px; }
   .home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 26px 0 8px; }
   .card {
     display: flex; flex-direction: column; gap: 8px;
@@ -326,6 +327,11 @@
           <span class="doc-cat">Segundo Cérebro</span>
           <h1>Início</h1>
           <p class="home-sub">Últimos estudos e sermões publicados, do mais recente ao mais antigo.</p>
+          <div class="filters home-filters" id="homeFilters">
+            <button class="chip active" data-home="todos">Todos</button>
+            <button class="chip" data-home="estudos">Estudos</button>
+            <button class="chip" data-home="sermoes">Esboços</button>
+          </div>
         </div>
         <div id="homeList" class="home-grid"></div>
         <div class="home-count" id="homeCount"></div>
@@ -394,6 +400,7 @@
   var sidebar = document.getElementById("sidebar");
   var currentId = null;
   var currentView = "home";
+  var homeFilter = "todos";
   var currentDraft = null;
   var filter = "todos";
   var query = "";
@@ -468,6 +475,12 @@
   });
   document.getElementById("btnHomeLink").addEventListener("click", function(e){
     e.preventDefault(); showHome();
+  });
+  document.getElementById("homeFilters").addEventListener("click", function(e){
+    var b = e.target.closest("[data-home]"); if(!b) return;
+    homeFilter = b.getAttribute("data-home");
+    document.querySelectorAll("#homeFilters .chip").forEach(function(c){ c.classList.toggle("active", c === b); });
+    renderHome();
   });
 
   /* ---------- fonte ---------- */
@@ -550,7 +563,10 @@
   }
 
   function renderHome(){
-    var recents = itens.slice().sort(function(a,b){
+    var recents = itens.filter(function(n){
+      if (homeFilter === "todos") return true;
+      return n.cat === homeFilter;
+    }).slice().sort(function(a,b){
       return String(b.created||"").localeCompare(String(a.created||""));
     });
     homeList.innerHTML = "";
