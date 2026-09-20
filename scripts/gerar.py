@@ -9,7 +9,29 @@ import json
 import os
 import re
 import sys
-from datetime import date
+from datetime import date, datetime
+
+
+def pegar(fm, *chaves):
+    for k in chaves:
+        v = fm.get(k)
+        if v:
+            return v
+    return ""
+
+
+def data_criacao(path, fm):
+    for k in ("created", "criado", "data"):
+        v = fm.get(k)
+        if v:
+            return v
+    try:
+        ts = os.stat(path).st_birthtime
+        if ts:
+            return datetime.fromtimestamp(ts).date().isoformat()
+    except (AttributeError, OSError):
+        pass
+    return pegar(fm, "updated", "modificado")
 
 VAULT = os.path.expanduser(
     "~/Library/Mobile Documents/com~apple~CloudDocs/Obsidian/Segundo_Cerebro"
@@ -62,12 +84,12 @@ def parse_nota(path):
         "file": os.path.relpath(path, VAULT),
         "title": title,
         "tags": tags,
-        "texto_base": fm.get("texto-base", fm.get("textobase", "")),
-        "versao": fm.get("versao", ""),
+        "texto_base": pegar(fm, "texto-base", "textobase", "texto_base"),
+        "versao": pegar(fm, "versao", "versão"),
         "tipo": fm.get("tipo", ""),
         "autor": fm.get("autor", ""),
-        "created": fm.get("created", ""),
-        "updated": fm.get("updated", ""),
+        "created": data_criacao(path, fm),
+        "updated": pegar(fm, "updated", "modificado"),
         "content": body.strip(),
     }
 

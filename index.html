@@ -423,7 +423,14 @@
 
   /* ---------- util ---------- */
   function slugify(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
-  function temposort(a,b){ var an=(a.id.match(/^\d+/)||["99"])[0], bn=(b.id.match(/^\d+/)||["99"])[0]; return +an-+bn || (a.cat<b.cat?-1:1); }
+  function datanum(n){
+    var d = (n.created || n.updated || "");
+    if (/^\d{4}-\d{2}-\d{2}/.test(d)) return Date.parse(d) || 0;
+    var m = (n.id || "").match(/^(\d+)/);
+    return m ? +m[1] : 0;
+  }
+  function porDataDesc(a,b){ return datanum(b) - datanum(a) || (a.cat < b.cat ? -1 : 1); }
+  function temposort(a,b){ return porDataDesc(a,b); }
 
   function toast(msg){
     var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
@@ -598,9 +605,7 @@
     var recents = itens.filter(function(n){
       if (homeFilter === "todos") return true;
       return n.cat === homeFilter;
-    }).slice().sort(function(a,b){
-      return String(b.created||"").localeCompare(String(a.created||""));
-    });
+    }).slice().sort(porDataDesc);
     homeList.innerHTML = "";
     recents.forEach(function(n){
       var card = document.createElement("a");
