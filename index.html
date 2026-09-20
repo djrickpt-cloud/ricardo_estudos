@@ -86,6 +86,15 @@
   .icon-btn { width: 34px; padding: 6px; justify-content: center; }
   .fontctl { display: flex; align-items: center; gap: 2px; }
   .fontctl .size { font-size: 13px; min-width: 34px; text-align: center; font-variant-numeric: tabular-nums; color: var(--text-soft); }
+  .fontsel {
+    appearance: none; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--text);
+    font: inherit; font-size: 12.5px; font-weight: 600;
+    border-radius: 9px; padding: 7px 9px; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .fontsel:hover { border-color: var(--accent); }
+  .fontsel:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   #btnMenu { display: none; }
   @media (max-width: 920px) {
@@ -295,6 +304,11 @@
       <span class="size" id="fontPct">100%</span>
       <button class="btn icon-btn" id="fontPlus" title="Aumentar texto">A+</button>
     </div>
+    <select id="fontFamily" class="fontsel" title="Fonte do texto exibido (salva automaticamente)">
+      <option value="serif">Serifada</option>
+      <option value="sans">Sem serifa</option>
+      <option value="mono">Mono</option>
+    </select>
     <button class="btn icon-btn" id="btnTheme" title="Alternar tema">🌙</button>
     <button class="btn icon-btn" id="btnAwake" title="Manter tela ligada (evita descanso/hibernação)">☕</button>
   </div>
@@ -496,6 +510,24 @@
   }
   fontPlus.addEventListener("click", function(){ font = Math.min(FMAX, font+STEP); applyFont(); });
   fontMinus.addEventListener("click", function(){ font = Math.max(FMIN, font-STEP); applyFont(); });
+
+  /* ---------- fonte (família) ---------- */
+  var famSel = document.getElementById("fontFamily");
+  var FONTS = {
+    serif: '"Source Serif 4", Georgia, "Times New Roman", serif',
+    sans: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    mono: 'ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace'
+  };
+  var fam = "serif";
+  try { fam = localStorage.getItem("re_font_family") || "serif"; } catch(e){}
+  if (!FONTS[fam]) fam = "serif";
+  famSel.value = fam;
+  applyFontFamily();
+  function applyFontFamily(){
+    document.documentElement.style.setProperty("--font-read", FONTS[fam]);
+    try { fam ? localStorage.setItem("re_font_family", fam) : localStorage.removeItem("re_font_family"); } catch(e){}
+  }
+  famSel.addEventListener("change", function(){ fam = famSel.value; applyFontFamily(); });
 
   /* ---------- markdown ---------- */
   function wikilinks(md){
