@@ -365,6 +365,7 @@
           <div class="doc-actions">
             <button class="btn ghost" id="btnCopyMd" title="Copiar o texto em formato Markdown">📋 Copiar .md</button>
             <button class="btn ghost" id="btnCopyHtml" title="Copiar o texto no formato HTML exibido">📋 Copiar HTML</button>
+            <button class="btn ghost" id="btnCopyFormatted" title="Copiar preservando negrito, itálico, grifos e citações (colar em Word/Google Docs)">📋 Copiar formatado</button>
           </div>
         </div>
         <div class="banner" id="draftBanner">
@@ -471,6 +472,57 @@
     if(!currentId) return;
     copyText(docBody.innerHTML, "HTML copiado.", "Não foi possível copiar.");
   });
+  document.getElementById("btnCopyFormatted").addEventListener("click", function(){
+    if(!currentId) return;
+    copyFormatted(docBody.innerHTML);
+  });
+
+  function htmlToPlain(html){
+    var d = document.createElement("div");
+    d.innerHTML = html;
+    d.querySelectorAll("script,style").forEach(function(el){ el.remove(); });
+    return d.textContent || d.innerText || "";
+  }
+  function htmlToRich(html){
+    var d = document.createElement("div");
+    d.innerHTML = html;
+    d.querySelectorAll("strong,b").forEach(function(el){ el.style.fontWeight = "bold"; });
+    d.querySelectorAll("em,i").forEach(function(el){ el.style.fontStyle = "italic"; });
+    d.querySelectorAll("mark,span[style*=background]").forEach(function(el){ if(!el.style.fontWeight && !el.style.fontStyle) el.style.backgroundColor = "#ffff00"; });
+    d.querySelectorAll("blockquote").forEach(function(el){
+      el.style.margin = "8px 0"; el.style.padding = "2px 12px";
+      el.style.borderLeft = "3px solid #aaa";
+    });
+    d.querySelectorAll("h1,h2,h3,h4").forEach(function(el){ el.style.fontWeight = "bold"; });
+    return d.innerHTML;
+  }
+  function copyFormatted(html){
+    var plain = htmlToPlain(html);
+    var rich  = htmlToRich(html);
+    function done(ok){ toast(ok ? "Texto formatado copiado." : "Não foi possível copiar."); }
+    if (!plain){ done(false); return; }
+    if (navigator.clipboard && window.ClipboardItem && typeof ClipboardItem !== "undefined") {
+      var item = new ClipboardItem({
+        "text/plain": new Blob([plain], { type: "text/plain" }),
+        "text/html":  new Blob([rich],  { type: "text/html" })
+      });
+      navigator.clipboard.write([item]).then(function(){ done(true); }).catch(function(){ fallbackRich(); });
+    } else {
+      fallbackRich();
+    }
+    function fallbackRich(){
+      var d = document.createElement("div");
+      d.innerHTML = rich;
+      d.style.position = "fixed"; d.style.left = "-9999px"; d.style.top = "0";
+      document.body.appendChild(d);
+      var sel = window.getSelection(), range = document.createRange();
+      range.selectNodeContents(d);
+      sel.removeAllRanges(); sel.addRange(range);
+      try { done(document.execCommand("copy")); } catch(e){ done(false); }
+      sel.removeAllRanges();
+      document.body.removeChild(d);
+    }
+  }
 
   /* ---------- tema ---------- */
   function applyTheme(theme){
