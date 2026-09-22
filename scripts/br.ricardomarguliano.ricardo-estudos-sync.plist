@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>br.ricardomarguliano.ricardo-estudos-sync</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/ricardomarguliano/ricardo_estudos/scripts/sync.sh</string>
+    </array>
+    <key>WatchPaths</key>
+    <array>
+        <string>/Users/ricardomarguliano/Library/Mobile Documents/com~apple~CloudDocs/Obsidian/Segundo_Cerebro/09 - Estudos</string>
+        <string>/Users/ricardomarguliano/Library/Mobile Documents/com~apple~CloudDocs/Obsidian/Segundo_Cerebro/08 - Sermões</string>
+    </array>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
