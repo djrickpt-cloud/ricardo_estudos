@@ -36,27 +36,26 @@ python3 scripts/gerar.py
 
 ## Publicar automaticamente a cada estudo/sermão novo
 
-Um agente do macOS (LaunchAgent) vigia as pastas `08 - Sermões` e `09 - Estudos`
-do Segundo Cérebro. Quando um arquivo novo aparece ou é renomeado, ele roda
-`scripts/sync.sh`, que regenera o `data.js`, faz commit e push (GitHub Pages
-publica sozinho).
+O `scripts/watch.sh` vigia as pastas `08 - Sermões` e `09 - Estudos` do Segundo
+Cérebro. Quando um `.md` novo aparece ou é renomeado, ele chama `scripts/sync.sh`,
+que regenera o `data.js`, faz commit e push (GitHub Pages publica sozinho).
+O `sync.sh` só publica quando o `data.js` muda e serializa execuções sobrepostas.
 
-**Instalação (uma única vez):**
+**Iniciar (após login/reinício):**
 
-1. Ativar o agente:
-   ```bash
-   launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/br.ricardomarguliano.ricardo-estudos-sync.plist
-   ```
-2. Liberar o acesso do iCloud para o Python (TCC):
-   - **Ajustes do Sistema → Privacidade e Segurança → Acesso total ao disco**
-   - Clique em **+** e adicione `/usr/bin/python3` (no seletor, Cmd+Shift+G e cole o caminho).
-   - Necessário porque processos disparados por launchd **não herdam** a permissão de iCloud que o terminal já tem.
+```bash
+nohup bash "$HOME/ricardo_estudos/scripts/watch.sh" >/dev/null 2>&1 &
+```
 
-**Parar:** `launchctl bootout "gui/$(id -u)/br.ricardomarguliano.ricardo-estudos-sync"`
+**Parar:** `kill "$(cat "$HOME/ricardo_estudos/.watch.pid")"`
 **Log:** `~/ricardo_estudos_sync.log`
 
-O `scripts/sync.sh` só publica quando o `data.js` muda (evita pushs à toa) e
-serializa execuções sobrepostas.
+> Por que não é um LaunchAgent: processos iniciados por launchd não herdam a
+> permissão de iCloud Drive do seu usuário (TCC) e falham ao ler o vault com
+> `EPERM`. O watcher roda na sessão autorizada e funciona sem configurar nada.
+> Limitação: precisa ser reiniciado após reboot/logout. Quem preferir o agente
+> que sobrevive a reboots pode conceder "Acesso total ao disco" a `/usr/bin/python3`
+> e usar `scripts/br.ricardomarguliano.ricardo-estudos-sync.plist`.
 
 ## Publicar (GitHub Pages)
 
